@@ -7,28 +7,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
     $role = $_POST['role'];
 
-    $stmt = $conn->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("ssss", $name, $email, $password, $role);
+    // Überprüfen, ob die E-Mail oder der Name bereits existiert
+    $stmt = $conn->prepare("SELECT id FROM users WHERE email = ? OR name = ? LIMIT 1");
+    $stmt->bind_param("ss", $email, $name);
+    $stmt->execute();
+    $stmt->store_result();
 
-    if ($stmt->execute()) {
-        echo "Registration successful!";
+    if ($stmt->num_rows > 0) {
+        // Wenn Benutzername oder E-Mail bereits existieren
+        echo "<script>alert('Registration failed: Email or Username already exists.'); window.location.href='../index.html';</script>";
     } else {
-        echo "Error: " . $stmt->error;
+        // Benutzer erstellen, wenn die Überprüfung bestanden ist
+        $stmt = $conn->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("ssss", $name, $email, $password, $role);
+
+        if ($stmt->execute()) {
+            echo "<script>alert('Registration successful!'); window.location.href='../index.html';</script>";
+        } else {
+            echo "<script>alert('Error: " . $stmt->error . "'); window.location.href='../index.html';</script>";
+        }
     }
 
     $stmt->close();
 }
-?>
-
-<form method="post" action="register.php">
-    Name: <input type="text" name="name" required><br>
-    Email: <input type="email" name="email" required><br>
-    Password: <input type="password" name="password" required><br>
-    Role:
-    <select name="role" required>
-        <option value="Admin">Admin</option>
-        <option value="Project Manager">Project Manager</option>
-        <option value="Employee">Employee</option>
-    </select><br>
-    <button type="submit">Register</button>
-</form>

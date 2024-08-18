@@ -1,5 +1,6 @@
 <?php
 require 'config.php';
+check_role('Admin'); // Nur Admins dürfen Projekte erstellen
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $title = $_POST['title'];
