@@ -1,32 +1,37 @@
 <?php
-require 'config.php';
+include 'db.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $name = $_POST['name'];
-    $email = $_POST['email'];
-    $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
-    $role = $_POST['role'];
+    // Überprüfen, ob die POST-Daten gesetzt sind
+    if (isset($_POST['email']) && isset($_POST['username']) && isset($_POST['password'])) {
+        $email = $_POST['email'];
+        $username = $_POST['username'];
+        $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
+        $role = 'user'; // Standardrolle
 
-    // Überprüfen, ob die E-Mail oder der Name bereits existiert
-    $stmt = $conn->prepare("SELECT id FROM users WHERE email = ? OR name = ? LIMIT 1");
-    $stmt->bind_param("ss", $email, $name);
-    $stmt->execute();
-    $stmt->store_result();
+        // Überprüfen, ob die E-Mail oder der Benutzername bereits existieren
+        $stmt = $pdo->prepare('SELECT COUNT(*) FROM users WHERE email = ? OR username = ?');
+        $stmt->execute([$email, $username]);
+        $existingUser = $stmt->fetchColumn();
 
-    if ($stmt->num_rows > 0) {
-        // Wenn Benutzername oder E-Mail bereits existieren
-        echo "<script>alert('Registration failed: Email or Username already exists.'); window.location.href='../index.html';</script>";
-    } else {
-        // Benutzer erstellen, wenn die Überprüfung bestanden ist
-        $stmt = $conn->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("ssss", $name, $email, $password, $role);
-
-        if ($stmt->execute()) {
-            echo "<script>alert('Registration successful!'); window.location.href='../index.html';</script>";
+        if ($existingUser > 0) {
+            // Wenn Benutzername oder E-Mail existieren, Umleitung mit einem spezifischen Fehlercode
+            header('Location: ../register.html?error=exists');
+            exit(); // Stoppe die Ausführung des Skripts hier
         } else {
-            echo "<script>alert('Error: " . $stmt->error . "'); window.location.href='../index.html';</script>";
+            // Einfügen des neuen Benutzers in die Datenbank
+            $stmt = $pdo->prepare('INSERT INTO users (email, username, password, role) VALUES (?, ?, ?, ?)');
+            if ($stmt->execute([$email, $username, $password, $role])) {
+                header('Location: ../index.html?registered=1');
+                exit(); // Stoppe die Ausführung des Skripts hier
+            } else {
+                header('Location: ../register.html?error=database');
+                exit(); // Stoppe die Ausführung des Skripts hier
+            }
         }
+    } else {
+        header('Location: ../register.html?error=missing');
+        exit(); // Stoppe die Ausführung des Skripts hier
     }
-
-    $stmt->close();
 }
+?>

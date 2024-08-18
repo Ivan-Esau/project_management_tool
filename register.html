@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Registrierung</title>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom Styles -->
@@ -15,13 +15,23 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h3>Login</h3>
+                    <h3>Registrierung</h3>
                 </div>
                 <div class="card-body">
                     <?php if (isset($_GET['error'])): ?>
-                    <div class="alert alert-danger">Ungültige Anmeldedaten. Bitte versuchen Sie es erneut.</div>
+                    <?php if ($_GET['error'] == 'exists'): ?>
+                    <div class="alert alert-danger">E-Mail oder Benutzername existieren bereits. Bitte wählen Sie eine andere E-Mail oder einen anderen Benutzernamen.</div>
+                    <?php elseif ($_GET['error'] == 'database'): ?>
+                    <div class="alert alert-danger">Fehler bei der Registrierung. Bitte versuchen Sie es erneut.</div>
+                    <?php elseif ($_GET['error'] == 'missing'): ?>
+                    <div class="alert alert-danger">Alle Felder sind erforderlich. Bitte füllen Sie das Formular vollständig aus.</div>
                     <?php endif; ?>
-                    <form action="php/login.php" method="post">
+                    <?php endif; ?>
+                    <form action="php/register.php" method="post">
+                        <div class="form-group">
+                            <label for="email">E-Mail-Adresse</label>
+                            <input type="email" name="email" id="email" class="form-control" required>
+                        </div>
                         <div class="form-group">
                             <label for="username">Benutzername</label>
                             <input type="text" name="username" id="username" class="form-control" required>
@@ -30,17 +40,17 @@
                             <label for="password">Passwort</label>
                             <input type="password" name="password" id="password" class="form-control" required>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-block">Login</button>
+                        <button type="submit" class="btn btn-primary btn-block">Registrieren</button>
                     </form>
                 </div>
                 <div class="card-footer text-center">
-                    <p>Noch keinen Account? <a href="register.html">Jetzt registrieren</a></p>
+                    <p>Bereits einen Account? <a href="index.html">Zum Login</a></p>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<!-- Bootstrap JS -->
+<!-- Bootstrap JS (ohne Popper.js) -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>

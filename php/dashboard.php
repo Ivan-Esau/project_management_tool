@@ -1,45 +1,40 @@
 <?php
-require 'config.php';
+session_start();
+include 'db.php';
 
-// Anzahl der laufenden und abgeschlossenen Projekte
-$project_stats = $conn->query("
-    SELECT
-        SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END) AS in_progress,
-        SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) AS completed
-    FROM projects
-")->fetch_assoc();
+// Überprüfen, ob der Benutzer angemeldet ist
+if (!isset($_SESSION['user_id'])) {
+    header('Location: index.html');
+    exit();
+}
 
-// Anzahl der Aufgaben pro Status
-$task_status_stats = $conn->query("
-    SELECT
-        SUM(CASE WHEN status = 'Open' THEN 1 ELSE 0 END) AS open,
-        SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END) AS in_progress,
-        SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) AS completed
-    FROM tasks
-")->fetch_assoc();
+// Projekte aus der Datenbank abrufen
+$stmt = $pdo->prepare('SELECT * FROM projects WHERE user_id = ?');
+$stmt->execute([$_SESSION['user_id']]);
+$projects = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Anzahl der Aufgaben pro Priorität
-$task_priority_stats = $conn->query("
-    SELECT
-        SUM(CASE WHEN priority = 'Low' THEN 1 ELSE 0 END) AS low,
-        SUM(CASE WHEN priority = 'Medium' THEN 1 ELSE 0 END) AS medium,
-        SUM(CASE WHEN priority = 'High' THEN 1 ELSE 0 END) AS high
-    FROM tasks
-")->fetch_assoc();
+// HTML einbinden und Projekte dynamisch einfügen
+ob_start();
+include 'dashboard.html';
+$htmlContent = ob_get_clean();
+
+$projectListHtml = '';
+if (count($projects) > 0) {
+    foreach ($projects as $project) {
+        $projectListHtml .= '<li class="list-group-item">';
+        $projectListHtml .= '<strong>' . htmlspecialchars($project['title']) . '</strong><br>';
+        $projectListHtml .= htmlspecialchars($project['description']) . '<br>';
+        $projectListHtml .= '<em>Startdatum: ' . htmlspecialchars($project['start_date']) . '</em><br>';
+        $projectListHtml .= '<em>Enddatum: ' . htmlspecialchars($project['end_date']) . '</em>';
+        $projectListHtml .= '</li>';
+    }
+} else {
+    $projectListHtml = '<p>Keine Projekte vorhanden.</p>';
+}
+
+// Platzhalter im HTML durch die Liste der Projekte ersetzen
+$htmlContent = str_replace('<!-- Projekte werden hier eingefügt -->', $projectListHtml, $htmlContent);
+
+// Die endgültige HTML-Seite anzeigen
+echo $htmlContent;
 ?>
-
-<h1>Dashboard</h1>
-
-<h2>Projekt-Statistiken</h2>
-<p>In Bearbeitung: <?php echo $project_stats['in_progress']; ?></p>
-<p>Abgeschlossen: <?php echo $project_stats['completed']; ?></p>
-
-<h2>Aufgaben-Statistiken nach Status</h2>
-<p>Offen: <?php echo $task_status_stats['open']; ?></p>
-<p>In Bearbeitung: <?php echo $task_status_stats['in_progress']; ?></p>
-<p>Abgeschlossen: <?php echo $task_status_stats['completed']; ?></p>
-
-<h2>Aufgaben-Statistiken nach Priorität</h2>
-<p>Niedrig: <?php echo $task_priority_stats['low']; ?></p>
-<p>Mittel: <?php echo $task_priority_stats['medium']; ?></p>
-<p>Hoch: <?php echo $task_priority_stats['high']; ?></p>
