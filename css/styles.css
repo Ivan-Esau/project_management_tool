@@ -1,0 +1,254 @@
+/* General Page Styles */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+
+body {
+    background-color: #1b1b1b; /* Dark charcoal background */
+    font-family: 'Poppins', sans-serif;
+    color: #ffffff; /* White text */
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Full-width Navigation Bar */
+nav {
+    width: 100%;
+    background-color: #2d2d2d; /* Deep gray background */
+    padding: 20px 40px;
+    display: flex;
+    justify-content: center; /* Center the content horizontally */
+    align-items: center;
+    z-index: 10;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    margin: 0;
+    padding: 0;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: #ffffff; /* White text */
+    font-size: 16px;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+nav ul li a:hover {
+    background-color: #555555; /* Darker gray highlight */
+}
+
+/* Main Content Layout */
+.container {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+}
+
+/* Sidebar Layout */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Main Content Area */
+.main-content {
+    display: flex;
+    flex-grow: 1;
+    gap: 20px; /* Space between current projects and calendar */
+}
+
+/* Neumorphism effect without shadow */
+.neumorphism {
+    background: #3a3a3a; /* Medium gray background */
+    border-radius: 15px;
+    padding: 10px; /* Adjust padding to ensure alignment */
+}
+
+/* Timer (Modern Digital Clock Look) */
+.timer {
+    width: 200px; /* Rectangular shape */
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: #ffffff; /* White text */
+    font-family: 'Orbitron', monospace;
+    background-color: #3a3a3a; /* Medium gray background */
+    border-radius: 15px;
+    margin: 0; /* Remove extra margins */
+}
+
+/* Small Info Components (Date, Weather, Stocks) */
+.small-info {
+    width: 200px; /* Same size as the clock */
+    height: 60px; /* Same height as the clock */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    text-align: center;
+    color: #ffffff; /* White text */
+    background-color: #3a3a3a; /* Medium gray background */
+    border-radius: 15px;
+    margin: 0; /* Remove extra margins */
+}
+
+/* Current Projects Component */
+.current-projects-component {
+    flex-grow: 2; /* Give more space to the project list */
+    padding: 20px;
+    background-color: #3a3a3a;
+    border-radius: 15px;
+    overflow-y: auto;
+    position: relative; /* To position the plus icon inside */
+}
+
+/* Plus Icon */
+.add-project-icon {
+    position: absolute;
+    bottom: 20px;
+    right: 20px; /* Positioned to the right side */
+    width: 40px;
+    height: 40px;
+    background-color: #555555;
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.add-project-icon:hover {
+    background-color: #777777;
+}
+
+/* Current Projects List */
+.current-projects-component ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.current-projects-component ul li {
+    padding: 10px 0;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #555555; /* Line between projects */
+}
+
+.current-projects-component ul li:last-child {
+    border-bottom: none; /* Remove the border from the last item */
+}
+
+.current-projects-component ul li strong {
+    display: block;
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+/* Calendar Component */
+.calendar-component {
+    flex-grow: 1; /* Adjust to fit the space next to the projects */
+    padding: 20px;
+    background-color: #3a3a3a;
+    border-radius: 15px;
+    text-align: center;
+}
+
+#calendarHeader {
+    margin-bottom: 20px;
+}
+
+.calendar-header,
+.calendar-body {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); /* 7 columns for 7 days */
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.calendar-day,
+.calendar-cell {
+    padding: 10px;
+    background-color: #555555;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #ffffff;
+}
+
+.calendar-cell.today {
+    background-color: #ff5722; /* Highlight today */
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.calendar-cell.empty {
+    background-color: transparent; /* Empty cells for spacing */
+}
+
+/* Add Project Component */
+.add-project-component {
+    padding: 20px;
+    background-color: #3a3a3a;
+    border-radius: 15px;
+    margin-top: 20px; /* Add space above the add project form */
+}
+
+/* Form Fields Styling */
+#projectForm label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+#projectForm input[type="text"],
+#projectForm textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: none;
+    border-radius: 10px;
+    background-color: #2d2d2d;
+    color: #ffffff;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+#projectForm input[type="text"]:focus,
+#projectForm textarea:focus {
+    outline: none;
+    background-color: #3a3a3a;
+}
+
+#projectForm button {
+    padding: 10px 15px;
+    background-color: #555555;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+#projectForm button:hover {
+    background-color: #777777;
+}
+
+#projectForm button:focus {
+    outline: none;
+    background-color: #777777;
+}

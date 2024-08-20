@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Management Dashboard</title>
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+<nav>
+    <ul>
+        <li><a href="tasks.html">Tasks</a></li>
+        <li><a href="projects.html">Projects</a></li>
+        <li><a href="calendar.html">Calendar</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+    <div class="sidebar">
+        <div class="grid-item neumorphism timer" id="clock">
+            <!-- The time will be displayed here -->
+        </div>
+        <div class="grid-item neumorphism small-info" id="dateInfo">
+            <!-- Date info will be displayed here -->
+        </div>
+        <div class="grid-item neumorphism small-info" id="weatherInfo">
+            <!-- Weather info will be displayed here -->
+        </div>
+        <div class="grid-item neumorphism small-info" id="stockInfo">
+            <!-- Stock market info will be displayed here -->
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- Current Projects Component -->
+        <div class="current-projects-component neumorphism">
+            <h2>Current Projects</h2>
+            <ul id="projectList">
+                <!-- Project items will be inserted here via JavaScript -->
+            </ul>
+
+            <!-- Plus icon to add new projects -->
+            <div class="add-project-icon" id="addProjectIcon">+</div>
+        </div>
+
+        <!-- Calendar Component -->
+        <div class="calendar-component neumorphism" id="calendarComponent">
+            <h2>Calendar</h2>
+            <div id="calendarHeader"></div>
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <!-- Hidden Add Project Component -->
+    <div class="add-project-component neumorphism" id="addProjectComponent">
+        <h2>Create a New Project</h2>
+        <form id="projectForm">
+            <label for="name">Project Name:</label><br>
+            <input type="text" id="name" name="name" required><br>
+            <label for="description">Project Description:</label><br>
+            <textarea id="description" name="description" required></textarea><br>
+            <button type="submit">Add Project</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Function to generate the calendar and highlight the current day
+    function generateCalendar() {
+        const calendarElement = document.getElementById('calendar');
+        const calendarHeader = document.getElementById('calendarHeader');
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const today = now.getDate();
+
+        const firstDayOfMonth = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        const monthNames = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+
+        const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+        // Update calendar header with the current month and year
+        calendarHeader.innerHTML = `<h3>${monthNames[month]} ${year}</h3>`;
+
+        // Create header with days of the week
+        let calendarHTML = '<div class="calendar-header">';
+        for (const day of daysOfWeek) {
+            calendarHTML += `<div class="calendar-day">${day}</div>`;
+        }
+        calendarHTML += '</div><div class="calendar-body">';
+
+        // Add blank days for the first week of the month
+        for (let i = 0; i < firstDayOfMonth; i++) {
+            calendarHTML += '<div class="calendar-cell empty"></div>';
+        }
+
+        // Add days of the month
+        for (let day = 1; day <= daysInMonth; day++) {
+            const isToday = day === today ? 'today' : '';
+            calendarHTML += `<div class="calendar-cell ${isToday}">${day}</div>`;
+        }
+
+        calendarHTML += '</div>';
+        calendarElement.innerHTML = calendarHTML;
+    }
+
+    // Toggle Add Project Form visibility
+    document.getElementById('addProjectIcon').addEventListener('click', function() {
+        const addProjectComponent = document.getElementById('addProjectComponent');
+        addProjectComponent.style.display = addProjectComponent.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // All previous JavaScript remains the same
+    function updateClock() {
+        const options = { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+        const now = new Date().toLocaleTimeString('de-DE', options);
+        document.getElementById('clock').textContent = now;
+    }
+
+    function updateSmallInfo() {
+        const now = new Date();
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const formattedDate = now.toLocaleDateString('de-DE', dateOptions);
+
+        document.getElementById('dateInfo').innerHTML = `<p>${formattedDate}</p>`;
+    }
+
+    function updateWeatherInfo() {
+        const weather = "Sunny 25°C"; // Placeholder for weather data
+        document.getElementById('weatherInfo').innerHTML = `<p>${weather}</p>`;
+    }
+
+    function cycleStocks() {
+        const stocks = [
+            { name: "AAPL", price: "145.09", change: "+0.85%" },
+            { name: "GOOGL", price: "2729.30", change: "-1.23%" },
+            { name: "AMZN", price: "3342.88", change: "+0.59%" }
+        ];
+
+        let currentStockIndex = 0;
+
+        function updateStockInfo() {
+            const stock = stocks[currentStockIndex];
+            document.getElementById('stockInfo').innerHTML = `
+                    <p>${stock.name}: $${stock.price} (${stock.change})</p>
+                `;
+            currentStockIndex = (currentStockIndex + 1) % stocks.length;
+        }
+
+        updateStockInfo(); // Initial display
+        setInterval(updateStockInfo, 2000); // Update every 2 seconds
+    }
+
+    function fetchProjects() {
+        fetch('php/get_projects.php')
+            .then(response => response.json())
+            .then(data => {
+                const projectList = document.getElementById('projectList');
+                projectList.innerHTML = ''; // Clear the list first
+
+                data.forEach(project => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<strong>${project.name}</strong><p>${project.description}</p>`;
+                    projectList.appendChild(li);
+                });
+            })
+            .catch(error => console.error('Error fetching project data:', error));
+    }
+
+    document.getElementById('projectForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent the form from submitting the traditional way
+
+        const formData = new FormData(this);
+
+        fetch('php/add_project.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.text())
+            .then(data => {
+                console.log(data);
+                fetchProjects(); // Refresh the project list
+                document.getElementById('addProjectComponent').style.display = 'none'; // Hide form after submission
+            })
+            .catch(error => console.error('Error adding project:', error));
+    });
+
+    // Initial Calls
+    setInterval(updateClock, 1000); // Update the clock every second
+    updateClock(); // Initial call to display time immediately
+    updateSmallInfo(); // Initial call to display date immediately
+    updateWeatherInfo(); // Initial call to display weather immediately
+    cycleStocks(); // Start cycling through stocks
+    fetchProjects(); // Fetch and display projects when the page loads
+
+    generateCalendar(); // Initial call to generate the calendar
+
+    // Hide the Add Project Component by default
+    document.getElementById('addProjectComponent').style.display = 'none';
+</script>
+</body>
+</html>
