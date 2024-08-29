@@ -7,13 +7,6 @@
     <link href="css/styles.css" rel="stylesheet">
 </head>
 <body>
-<nav>
-    <ul>
-        <li><a href="tasks.html">Tasks</a></li>
-        <li><a href="projects.html">Projects</a></li>
-        <li><a href="calendar.html">Calendar</a></li>
-    </ul>
-</nav>
 
 <div class="container">
     <div class="sidebar">
@@ -115,13 +108,14 @@
         addProjectComponent.style.display = addProjectComponent.style.display === 'none' ? 'block' : 'none';
     });
 
-    // All previous JavaScript remains the same
+    // Function to update clock
     function updateClock() {
         const options = { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit', second: '2-digit' };
         const now = new Date().toLocaleTimeString('de-DE', options);
         document.getElementById('clock').textContent = now;
     }
 
+    // Function to update date info
     function updateSmallInfo() {
         const now = new Date();
         const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -130,11 +124,13 @@
         document.getElementById('dateInfo').innerHTML = `<p>${formattedDate}</p>`;
     }
 
+    // Function to update weather info
     function updateWeatherInfo() {
         const weather = "Sunny 25°C"; // Placeholder for weather data
         document.getElementById('weatherInfo').innerHTML = `<p>${weather}</p>`;
     }
 
+    // Function to cycle stock information
     function cycleStocks() {
         const stocks = [
             { name: "AAPL", price: "145.09", change: "+0.85%" },
@@ -147,8 +143,8 @@
         function updateStockInfo() {
             const stock = stocks[currentStockIndex];
             document.getElementById('stockInfo').innerHTML = `
-                    <p>${stock.name}: $${stock.price} (${stock.change})</p>
-                `;
+                <p>${stock.name}: $${stock.price} (${stock.change})</p>
+            `;
             currentStockIndex = (currentStockIndex + 1) % stocks.length;
         }
 
@@ -156,6 +152,7 @@
         setInterval(updateStockInfo, 2000); // Update every 2 seconds
     }
 
+    // Function to fetch and display projects
     function fetchProjects() {
         fetch('php/get_projects.php')
             .then(response => response.json())
@@ -165,13 +162,85 @@
 
                 data.forEach(project => {
                     const li = document.createElement('li');
-                    li.innerHTML = `<strong>${project.name}</strong><p>${project.description}</p>`;
+                    li.innerHTML = `
+                        <strong>${project.name}</strong><p>${project.description}</p>
+                        <button class="toggle-tasks">View/Add Tasks</button>
+                        <div class="tasks" style="display:none;">
+                            <ul class="taskList" data-project-id="${project.id}">
+                                <!-- Task items will be inserted here via JavaScript -->
+                            </ul>
+                            <form class="taskForm" data-project-id="${project.id}">
+                                <input type="text" name="taskName" placeholder="Task name" required>
+                                <textarea name="taskDescription" placeholder="Task description" required></textarea>
+                                <button type="submit">Add Task</button>
+                            </form>
+                        </div>`;
                     projectList.appendChild(li);
                 });
+
+                // Attach event listeners to the newly added buttons and forms
+                attachTaskEventListeners();
             })
             .catch(error => console.error('Error fetching project data:', error));
     }
 
+    // Function to attach event listeners to task-related elements
+    function attachTaskEventListeners() {
+        document.querySelectorAll('.toggle-tasks').forEach(button => {
+            button.addEventListener('click', function() {
+                const tasksDiv = this.nextElementSibling;
+                tasksDiv.style.display = tasksDiv.style.display === 'none' ? 'block' : 'none';
+                const projectId = tasksDiv.querySelector('.taskList').getAttribute('data-project-id');
+                fetchTasks(projectId);
+            });
+        });
+
+        document.querySelectorAll('.taskForm').forEach(form => {
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const projectId = this.getAttribute('data-project-id');
+                const formData = new FormData(this);
+
+                fetch(`php/add_task.php?project_id=${projectId}`, {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data); // Debug: Log the response
+                        if (data.error) {
+                            alert(`Error: ${data.error}`);
+                        } else {
+                            fetchTasks(projectId); // Refresh the task list
+                            this.reset(); // Clear the form
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error adding task:', error); // Debug: Log the error
+                        alert('An unexpected error occurred while adding the task.');
+                    });
+            });
+        });
+    }
+
+    // Function to fetch and display tasks for a specific project
+    function fetchTasks(projectId) {
+        fetch(`php/get_tasks.php?project_id=${projectId}`)
+            .then(response => response.json())
+            .then(data => {
+                const taskList = document.querySelector(`.taskList[data-project-id="${projectId}"]`);
+                taskList.innerHTML = ''; // Clear the list first
+
+                data.forEach(task => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<strong>${task.name}</strong><p>${task.description}</p>`;
+                    taskList.appendChild(li);
+                });
+            })
+            .catch(error => console.error('Error fetching tasks:', error));
+    }
+
+    // Handle form submission for adding projects
     document.getElementById('projectForm').addEventListener('submit', function(event) {
         event.preventDefault(); // Prevent the form from submitting the traditional way
 
@@ -181,13 +250,20 @@
             method: 'POST',
             body: formData
         })
-            .then(response => response.text())
+            .then(response => response.json())
             .then(data => {
-                console.log(data);
-                fetchProjects(); // Refresh the project list
-                document.getElementById('addProjectComponent').style.display = 'none'; // Hide form after submission
+                console.log(data); // Debug: Log the response
+                if (data.error) {
+                    alert(`Error: ${data.error}`);
+                } else {
+                    fetchProjects(); // Refresh the project list
+                    document.getElementById('addProjectComponent').style.display = 'none'; // Hide form after submission
+                }
             })
-            .catch(error => console.error('Error adding project:', error));
+            .catch(error => {
+                console.error('Error adding project:', error); // Debug: Log the error
+                alert('An unexpected error occurred while adding the project.');
+            });
     });
 
     // Initial Calls

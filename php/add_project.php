@@ -1,31 +1,25 @@
 <?php
-// Database connection
-$host = 'localhost';
-$dbname = 'project_management';
-$username = 'root';
-$password = '';
+require 'db.php';
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = $_POST['name'] ?? '';
+    $description = $_POST['description'] ?? '';
 
-    // Check if form data is submitted
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $name = $_POST['name'] ?? null;
-        $description = $_POST['description'] ?? null;
-
-        if ($name && $description) {
-            // Insert the new project into the database
+    if (!empty($name) && !empty($description)) {
+        try {
             $stmt = $pdo->prepare('INSERT INTO projects (name, description) VALUES (:name, :description)');
-            $stmt->execute(['name' => $name, 'description' => $description]);
+            $stmt->bindParam(':name', $name);
+            $stmt->bindParam(':description', $description);
+            $stmt->execute();
 
-            echo 'Project added successfully!';
-        } else {
-            echo 'Error: Missing project name or description.';
+            echo json_encode(['message' => 'Project added successfully.']);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
         }
     } else {
-        echo 'Invalid request method.';
+        echo json_encode(['error' => 'Missing project name or description.']);
     }
-} catch (PDOException $e) {
-    echo 'Connection failed: ' . $e->getMessage();
+} else {
+    echo json_encode(['error' => 'Invalid request method.']);
 }
+?>
